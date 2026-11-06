@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# allow the template
+!.env.example
+
+# local database
+/data/
+
+# playwright output
+/screenshots/
+/test-results/

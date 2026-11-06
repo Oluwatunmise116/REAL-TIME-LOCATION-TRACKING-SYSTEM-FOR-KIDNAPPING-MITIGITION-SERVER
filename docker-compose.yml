@@ -1,0 +1,35 @@
+# Fully local development: Mosquitto on :1883 (no TLS, anonymous), optional dashboard container.
+#
+#   docker compose up mosquitto
+#   MQTT_URL=mqtt://localhost:1883 npm run dev
+#   npm run simulate -- --url mqtt://localhost:1883 --motion --sos
+#
+# Or run everything in containers:  docker compose --profile app up --build
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  dashboard:
+    profiles: ["app"]
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      MQTT_URL: mqtt://mosquitto:1883
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-change-me}
+      SESSION_SECRET: ${SESSION_SECRET:-local-dev-secret-change-me-0123456789abcdef}
+      DATABASE_PATH: /app/data/axiometer.db
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-}
+      NEXT_PUBLIC_GOOGLE_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAP_ID:-}
+    volumes:
+      - axiometer-data:/app/data
+    depends_on:
+      - mosquitto
+
+volumes:
+  axiometer-data:
